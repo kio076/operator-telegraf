@@ -724,21 +724,21 @@
         const storyChapters = [
             {
                 title: "PROLOG & BAB 1: AWAL MULA",
-                intro: "Tahun 1914, Perang Dunia I meletus. Di sebuah pos logistik terpencil, Clara—seorang sukarelawan perawat muda—menemukan alat telegraf tua dan mencoba memutar knop frekuensi tanpa sengaja. Sinyalnya terhubung ke Thomas, seorang operator militer di markas utama.",
+                intro: "Tahun 1914, Perang Dunia I meletus. Di sebuah pos logistik zona merah, Clara seorang perawat muda, menemukan alat telegraf tua.Ia mencoba memutar knop frekuensi tanpa sengaja, Sinyalnya terhubung ke Thomas, seorang operator militer di markas utama.",
                 sceneType: "trench",
                 dialogs: [
-                    { clara: "TES TES APAKAH ADA ORANG", thomas: "SIAPA DI SANA INI SALURAN TENTARA" },
-                    { clara: "MAAF AKU CLARA PERAWAT LAPANGAN", thomas: "AKU THOMAS JANGAN PAKAI JALUR INI" }
+                    { clara: "TES TES APAKAH ADA ORANG", thomas: "SIAPA INI INI SALURAN TENTARA" },
+                    { clara: "MAAF AKU CLARA PERAWAT GARIS DEPAN", thomas: "AKU THOMAS JANGAN PAKAI SALURAN INI" }
                 ],
                 hazard: "none"
             },
             {
                 title: "BAB 2: MULAI BERBINCANG",
-                intro: "Malam demi malam berlalu di tengah dinginnya parit pertahanan. Merasa takut dan kesepian di garis depan, Clara kembali mengetuk pemancarnya secara sembunyi-sembunyi. Sikap kaku Thomas pun perlahan melunak.",
+                intro: "Malam demi malam berlalu di tengah dinginnya parit pertahanan. Merasa takut dan kesepian di garis depan, Clara kembali mengetuk telegrafnya secara sembunyi-sembunyi. Sikap kaku Thomas pun perlahan melunak.",
                 sceneType: "nightCamp",
                 dialogs: [
                     { clara: "DI SINI DINGIN DAN GELAP", thomas: "DI MARKAS JUGA HUJAN" },
-                    { clara: "SENANG MENDENGAR SUARA KETUKANMU", thomas: "AKU BIARKAN SALURAN INI TERBUKA" }
+                    { clara: "SENANG KAMU MEMBALAS PESAN INI", thomas: "AKU BIARKAN SALURAN INI TERBUKA" }
                 ],
                 hazard: "none"
             },
@@ -747,7 +747,7 @@
                 intro: "Di sela desing peluru yang melintasi medan perang, dua orang asing ini mulai berbagi masa lalu dan impian sederhana mereka sebelum perang merenggut segalanya.",
                 sceneType: "splitWorld",
                 dialogs: [
-                    { clara: "SEBELUM PERANG AKU GURU MUSIK", thomas: "AKU HANYA TUKANG KAYU BIASA" },
+                    { clara: "SEBELUM PERANG AKU PERAWAT ORANG TUA", thomas: "AKU HANYA TUKANG KAYU BIASA" },
                     { clara: "KETUKAN MORSEMU SEPERTI SEBUAH LAGU", thomas: "KAU CAHAYA DI FREKUENSI INI" }
                 ],
                 hazard: "stealth"
@@ -757,14 +757,14 @@
                 intro: "Sebuah ikatan mendalam tumbuh di antara mereka tanpa pernah bertatap muka. Mereka mengikat sebuah janji untuk saling mencari dan bertemu begitu perang ini berakhir.",
                 sceneType: "clockPromise",
                 dialogs: [
-                    { clara: "KITA HARUS BERTEMU SAAT DAMAI", thomas: "TUNGGU AKU DI STASIUN UTARA" },
-                    { clara: "AKU AKAN MEMBUATKANMU SEBUAH KUE HANGAT", thomas: "AKU AKAN MENANTIKANNYA" }
+                    { clara: "KITA HARUS BERTEMU SAAT PERANG USAI", thomas: "MARI BERTEMU DI STASIUN UTARA" },
+                    { clara: "AKU AKAN MEMBAWAKANMU SEBUAH KUE MANIS", thomas: "AKU AKAN MENANTIKANNYA" }
                 ],
                 hazard: "flare"
             },
             {
                 title: "BAB 5: KEADAAN MENJADI GAWAT",
-                intro: "Sektor utara diserang secara mendadak oleh rentetan artileri berat. Rumah sakit lapangan dihantam mortir. Terjebak di ruang bawah tanah, Clara menggunakan telegraf sebagai satu-satunya suar darurat.",
+                intro: "Sektor utara diserang secara mendadak oleh rentetan artileri berat. Rumah sakit lapangan dihantam mortir. Terjebak di suatu ruangan, Clara menggunakan telegraf sebagai satu-satunya suar darurat.",
                 sceneType: "ruinedCamp",
                 dialogs: [
                     { clara: "MORTIR MENGHANTAM RUMAH SAKIT PINTU TERTUTUP", thomas: "CARI JALAN KELUAR LAIN SEGERA" },
@@ -774,11 +774,11 @@
             },
             {
                 title: "BAB 6: PESAN TERAKHIR",
-                intro: "Gedung di atas runtuh total. Clara terperangkap di bawah balok semen sempit bersama pemancar yang baterainya mulai bocor dan melemah. Menyadari waktu yang tersisa, ia mengirimkan transmisi terakhirnya.",
+                intro: "Lantai di atas runtuh total. Clara terperangkap di bawah balok semen sempit bersama pemancar yang baterainya mulai bocor dan melemah. Menyadari waktu yang tak banyak, ia mengirimkan transmisi terakhirnya.",
                 sceneType: "bunkerCollapse",
                 dialogs: [
                     { clara: "AKU TERTINDIH DI BAWAH RERUNTUHAN", thomas: "HEMAT TENAGAMU BERTAHAN SEBENTAR LAGI" },
-                    { clara: "UDARA MENIPIS BATERAI HAMPIR HABIS", thomas: "JANGAN MENYERAH TETAP KETUK TELEGRAF" },
+                    { clara: "UDARA MENIPIS BATERAI HAMPIR HABIS", thomas: "TETAP TENANG AKU AKAN KE SANA" },
                     { clara: "AKU MENCINTAIMU", thomas: "TUNGGU" }
                 ],
                 hazard: "damaged"
@@ -788,7 +788,7 @@
         const epilogueStory = {
             title: "EPILOG: DERAU FREKUENSI KOSONG",
             sceneType: "epilogueBroken",
-            text: "Setelah Thomas mengirimkan ketukan terakhirnya, saluran transmiter dari arah utara seketika hening...\n\nSinyal radio itu mati total.\n\nBantuan militer yang tiba keesokan paginya hanya menemukan puing-puing rumah sakit lapangan yang telah hancur rata dengan tanah. Clara gugur di antara reruntuhan bunker sebelum tim penyelamat sempat menggali puing-puing tersebut.\n\nPerang akhirnya usai beberapa tahun kemudian. Prajurit lain merayakan kepulangan mereka, namun Thomas tidak pernah benar-benar kembali dari perang itu.\n\nHingga rambutnya memutih dan masa tuanya tiba, Thomas tetap duduk sendirian di depan meja telegraf tua miliknya, menyetel frekuensi terlarang yang kini hanya menyisakan desis derau radio kosong.\n\nIa tidak pernah menikah dengan siapapun hingga akhir hayatnya, menjaga kesetiaan dan janji cintanya pada gadis telegraf di seberang frekuensi."
+            text: "Setelah Thomas mengirimkan ketukan terakhirnya, saluran transmiter dari zona merah seketika hening...\n\nSinyal radio itu mati total.\n\nBantuan militer yang tiba keesokan paginya hanya menemukan puing-puing rumah sakit lapangan yang telah hancur rata dengan tanah. Clara tergeletak tak bernyawa di antara reruntuhan bunker.\n\nPerang akhirnya usai beberapa tahun kemudian. Prajurit lain merayakan kepulangan mereka, namun Thomas tidak pernah benar-benar kembali dari perang itu.\n\nHingga rambutnya memutih dan masa tuanya tiba, Thomas tetap duduk sendirian di depan meja telegraf tua miliknya, menyetel frekuensi terlarang yang kini hanya menyisakan desis derau radio kosong.\n\nIa tidak menikah dengan siapapun hingga akhir hayatnya, menjaga kesetiaan dan janji cintanya pada gadis telegraf di seberang frekuensi."
         };
 
         let gameMode = 'single';
