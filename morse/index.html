@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operator Sandi Morse - World War Edition</title>
+    <style>
+        body {
+            background-color: #141414;
+            color: #d4d4d4;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+
+        /* --- ATMOSPHERIC FX OVERLAYS --- */
+        #dust-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+
+        .flare-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 10%, rgba(40, 255, 120, 0.25), transparent 75%);
+            pointer-events: none;
+            z-index: 4;
+            display: none;
+            animation: flarePulse 4s infinite alternate;
+        }
+
+        .patrol-shadow {
+            position: fixed;
+            bottom: 0;
+            left: -30%;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.85), transparent);
+            pointer-events: none;
+            z-index: 6;
+            display: none;
+        }
+
+        /* --- UI SCREEN MANAGERS --- */
+        .screen {
+            display: none;
+            width: 90%;
+            max-width: 620px;
+            z-index: 10;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* --- MENU STYLES --- */
+        .menu-container {
+            background-color: #2a2a24;
+            border: 4px solid #4a4a3f;
+            border-radius: 10px;
+            padding: 40px 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .menu-title {
+            color: #c9b075;
+            font-size: 2em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .menu-subtitle {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 25px;
+        }
+
+        .menu-btn {
+            background-color: #3a3a30;
+            color: #e3dcb8;
+            border: 2px solid #8c8263;
+            padding: 13px 20px;
+            font-size: 1.05em;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #111;
+        }
+
+        .menu-btn:hover {
+            background-color: #4a4a3f;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #111;
+        }
+
+        .menu-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #111;
+        }
+
+        /* --- SETTINGS SLIDER STYLES --- */
+        .setting-group {
+            margin: 20px 0;
+            text-align: left;
+            background: #1e1e19;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #444;
+        }
+
+        .setting-label {
+            display: flex;
+            justify-content: space-between;
+            color: #c9b075;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .setting-slider {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #c9b075;
+        }
+
+        /* --- STORY INTRO & EPILOGUE SCREEN --- */
+        .story-intro {
+            text-align: center;
+        }
+
+        .story-illustration-canvas {
+            width: 100%;
+            height: auto;
+            max-height: 220px;
+            border-radius: 6px;
+            border: 2px solid #5a5a4a;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            margin-bottom: 15px;
+            display: none;
+            background-color: #0b2161;
+        }
+
+        .chapter-title {
+            color: #c9b075;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .story-text {
+            font-size: 1.05em;
+            line-height: 1.7;
+            color: #ccc;
+            margin-bottom: 30px;
+            text-align: justify;
+            min-height: 90px;
+            white-space: pre-wrap;
+        }
+
+        .action-btn {
+            background: #3a3a30;
+            color: #e3dcb8;
+            border: 2px solid #8c8263;
+            padding: 12px 25px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #111;
+        }
+
+        .action-btn:hover {
+            background-color: #4a4a3f;
+            color: #fff;
+        }
+
+        /* --- GAMEPLAY CONTAINER & ANIMATED ELEMENTS --- */
+        .game-container {
+            background-color: #2a2a24;
+            border: 4px solid #4a4a3f;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .bunker-lamp {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            width: 40px;
+            height: 35px;
+            background: radial-gradient(circle, #fff3a8 15%, #b59b37 60%, transparent 80%);
+            border-radius: 50%;
+            box-shadow: 0 10px 35px rgba(255, 235, 130, 0.4);
+            transform-origin: top center;
+            display: none;
+        }
+        .bunker-lamp.swing {
+            display: block;
+            animation: lampSwing 4s ease-in-out infinite alternate;
+        }
+
+        .radio-meter {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 18px;
+            margin-bottom: 8px;
+        }
+        .meter-bar {
+            width: 4px;
+            height: 6px;
+            background-color: #5cb85c;
+            border-radius: 2px;
+            animation: waveBounce 1.2s infinite ease-in-out;
+        }
+        .meter-bar:nth-child(2) { animation-delay: 0.2s; }
+        .meter-bar:nth-child(3) { animation-delay: 0.4s; }
+        .meter-bar:nth-child(4) { animation-delay: 0.1s; }
+        .meter-bar:nth-child(5) { animation-delay: 0.3s; }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .back-btn {
+            background: #333;
+            color: #aaa;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: inherit;
+            border-radius: 3px;
+        }
+
+        .info-display {
+            color: #c9b075;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .paper {
+            background-color: #e3dcb8;
+            color: #222;
+            padding: 20px 15px;
+            margin: 12px 0;
+            border-radius: 5px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            min-height: 55px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .clara-msg {
+            color: #8b0000;
+            font-size: 1em;
+            margin-bottom: 8px;
+            font-weight: bold;
+            display: none;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+
+        .target-word {
+            font-size: 1.7em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 0;
+            color: #111;
+            word-wrap: break-word;
+        }
+
+        .target-word.damaged {
+            animation: glitch 0.3s infinite;
+        }
+
+        .danger-alert {
+            color: #ff3333;
+            font-weight: bold;
+            font-size: 1.05em;
+            display: none;
+            animation: blink 0.5s infinite;
+            margin-bottom: 10px;
+        }
+
+        .input-display {
+            font-size: 1.5em;
+            min-height: 48px;
+            color: #5cb85c;
+            letter-spacing: 2px;
+            margin: 12px 0;
+            font-weight: bold;
+            word-wrap: break-word;
+            background-color: #111;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            white-space: pre-wrap;
+            text-align: left;
+        }
+
+        /* --- INDIKATOR REPLAY HIGHLIGHT --- */
+        .replay-active-char {
+            background-color: #ffd700 !important;
+            color: #000000 !important;
+            border-radius: 3px;
+            padding: 1px 4px;
+            display: inline-block;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.9);
+            animation: pulseChar 0.2s infinite alternate;
+        }
+
+        @keyframes pulseChar {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+
+        .freeplay-controls {
+            display: none;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .freeplay-btn {
+            flex: 1 1 calc(33.33% - 8px);
+            background-color: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 8px 6px;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.85em;
+            box-sizing: border-box;
+        }
+
+        .freeplay-btn:hover {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .telegraph-btn {
+            background-color: #4a4a3f;
+            color: #fff;
+            border: 2px solid #222;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 5px 0 #111;
+            transition: all 0.05s;
+            user-select: none;
+            width: 100%;
+        }
+
+        .telegraph-btn:active, .telegraph-btn.active {
+            box-shadow: 0 2px 0 #111;
+            transform: translateY(3px);
+            background-color: #5a5a4d;
+        }
+
+        .telegraph-btn.disabled {
+            background-color: #2b2b2b !important;
+            color: #666 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            transform: translateY(4px);
+        }
+
+        /* --- POP-UP CHEAT SHEET --- */
+        .cheat-panel {
+            position: fixed;
+            right: -390px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 360px;
+            background-color: #d8ce9f;
+            color: #2a2a20;
+            border: 3px solid #8c8263;
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            padding: 20px;
+            box-shadow: -8px 8px 25px rgba(0,0,0,0.6);
+            transition: right 0.3s ease-in-out;
+            z-index: 100;
+        }
+
+        .cheat-panel.open { right: 0; }
+
+        .toggle-btn {
+            position: absolute;
+            left: -48px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #8c8263;
+            color: #fff;
+            border: none;
+            padding: 14px 10px;
+            cursor: pointer;
+            border-radius: 8px 0 0 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .cheat-panel h2 {
+            font-size: 1.3em;
+            text-align: center;
+            margin: 0 0 15px 0;
+            border-bottom: 2px dashed #8c8263;
+            padding-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .morse-grid-container { 
+            display: flex; 
+            justify-content: space-between; 
+            gap: 20px; 
+        }
+
+        .morse-column { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 7px; 
+        }
+
+        .morse-item { 
+            display: flex; 
+            justify-content: space-between; 
+            border-bottom: 1px dotted #a89f78; 
+            font-size: 1.15em; 
+            font-weight: bold;
+            padding-bottom: 2px;
+        }
+
+        .morse-code { 
+            color: #8b0000; 
+            letter-spacing: 2px;
+            font-size: 1.1em;
+        }
+
+        /* --- ANIMATION KEYFRAMES --- */
+        .error-flash { background-color: #4a1111 !important; }
+        .success-flash { background-color: #114a1c !important; }
+
+        .bunker-earthquake {
+            animation: violentShake 0.4s infinite alternate;
+        }
+
+        .bunker-red-alert {
+            animation: redAlarmPulse 1.2s infinite alternate !important;
+            border-color: #e62222 !important;
+        }
+
+        .artillery-flash {
+            background-color: #3b2c1a !important;
+            transition: background-color 0.05s ease-out;
+        }
+
+        @keyframes violentShake {
+            0% { transform: translate(3px, 2px) rotate(0.6deg); }
+            25% { transform: translate(-3px, -3px) rotate(-0.8deg); }
+            50% { transform: translate(4px, -1px) rotate(0.4deg); }
+            75% { transform: translate(-2px, 3px) rotate(-0.5deg); }
+            100% { transform: translate(1px, -2px) rotate(0.2deg); }
+        }
+
+        @keyframes redAlarmPulse {
+            0% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
+            100% { box-shadow: 0 0 45px rgba(255, 20, 20, 0.7); }
+        }
+
+        @keyframes lampSwing {
+            0% { transform: rotate(-12deg); }
+            100% { transform: rotate(12deg); }
+        }
+
+        @keyframes waveBounce {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
+        }
+
+        @keyframes flarePulse {
+            0% { opacity: 0.4; }
+            100% { opacity: 0.9; }
+        }
+
+        @keyframes patrolWalk {
+            0% { left: -30%; opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { left: 110%; opacity: 0; }
+        }
+
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0;} 100% {opacity: 1;} }
+        @keyframes glitch { 0% {transform: translate(0)} 25% {transform: translate(-2px, 1px)} 50% {transform: translate(1px, -1px)} 75% {transform: translate(-1px, 2px)} 100% {transform: translate(0)} }
+    </style>
+</head>
+<body>
+
+    <!-- Visual Layer Elements -->
+    <canvas id="dust-canvas"></canvas>
+    <div class="flare-overlay" id="flare-overlay"></div>
+    <div class="patrol-shadow" id="patrol-shadow"></div>
+
+    <!-- ================= 1. MAIN MENU ================= -->
+    <div class="screen active" id="main-menu-screen">
+        <div class="menu-container">
+            <div class="menu-title">OPERATOR TELEGRAF</div>
+            <div class="menu-subtitle">World War Edition</div>
+            
+            <button class="menu-btn" onclick="showScreen('play-modes-screen')">▶ PLAY</button>
+            <button class="menu-btn" onclick="showScreen('settings-screen')">⚙ SETTING</button>
+            <button class="menu-btn" onclick="exitGame()" style="border-color: #8b3a3a; color: #ff9999;">✖ EXIT</button>
+        </div>
+    </div>
+
+    <!-- ================= 2. PLAY SUB-MENU ================= -->
+    <div class="screen" id="play-modes-screen">
+        <div class="menu-container">
+            <div class="menu-title">PILIH MODE</div>
+            <div class="menu-subtitle">Pilih Jenis Transmisi Sandi</div>
+            
+            <button class="menu-btn" onclick="startGame('single')">MODE 1 KATA</button>
+            <button class="menu-btn" onclick="startGame('multi')">MODE 2+ KATA (PROGRESIF)</button>
+            <button class="menu-btn" onclick="startStoryMode()" style="border-color: #c9b075; color: #ffd983;">MODE CERITA (STORY)</button>
+            <button class="menu-btn" onclick="startFreeplayMode()" style="border-color: #5cb85c; color: #a4e6a4;">MODE BEBAS (FREEPLAY)</button>
+            
+            <button class="menu-btn" onclick="showMenu()" style="margin-top: 15px; border-color: #666; color: #aaa;">◄ KEMBALI KE MENU</button>
+        </div>
+    </div>
+
+    <!-- ================= 3. SETTINGS MENU ================= -->
+    <div class="screen" id="settings-screen">
+        <div class="menu-container">
+            <div class="menu-title">PENGATURAN</div>
+            <div class="menu-subtitle">Sesuaikan Suara &amp; Audio</div>
+            
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>Status Musik:</span>
+                    <span id="music-status-text">ON</span>
+                </div>
+                <button class="menu-btn" id="setting-music-btn" onclick="toggleBGM()" style="margin-bottom: 0;">🔊 MUSIK: ON</button>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>Volume Musik:</span>
+                    <span id="volume-val-text">90%</span>
+                </div>
+                <input type="range" class="setting-slider" id="bgm-volume-slider" min="0" max="100" value="90" oninput="changeBgmVolume(this.value)">
+            </div>
+
+            <button class="menu-btn" onclick="showMenu()" style="margin-top: 15px; border-color: #666; color: #aaa;">◄ KEMBALI KE MENU</button>
+        </div>
+    </div>
+
+    <!-- ================= 4. EXIT SCREEN ================= -->
+    <div class="screen" id="exit-screen">
+        <div class="menu-container">
+            <div class="menu-title" style="color: #ff5555;">SESI BERAKHIR</div>
+            <div class="menu-subtitle">Stasiun Radio Telegraf Telah Dimatikan</div>
+            <p style="color: #aaa; font-size: 0.9em; line-height: 1.6; margin-bottom: 25px;">
+                Anda dapat menutup tab browser ini secara manual untuk keluar.
+            </p>
+            <button class="menu-btn" onclick="showMenu()">◄ NYALAKAN KEMBALI TELEGRAF</button>
+        </div>
+    </div>
+
+    <!-- ================= STORY INTRO & EPILOGUE SCREEN ================= -->
+    <div class="screen" id="story-screen">
+        <div class="game-container story-intro">
+            <canvas id="story-illustration-canvas" class="story-illustration-canvas" width="509" height="275"></canvas>
+            <div class="chapter-title" id="story-title">BAB 1</div>
+            <div class="story-text" id="story-text"></div>
+            <button class="action-btn" id="start-chapter-btn" onclick="handleStoryAction()">MULAI PENGIRIMAN</button>
+        </div>
+    </div>
+
+    <!-- ================= GAMEPLAY SCREEN ================= -->
+    <div class="screen" id="game-screen">
+        <div class="game-container" id="main-game-box">
+            <div class="bunker-lamp" id="bunker-lamp"></div>
+
+            <div class="header-bar">
+                <button class="back-btn" onclick="showMenu()">◄ Menu</button>
+                <div class="info-display" id="info-val">SKOR: 0</div>
+            </div>
+
+            <div class="radio-meter" id="radio-meter">
+                <div class="meter-bar"></div>
+                <div class="meter-bar"></div>
+                <div class="meter-bar"></div>
+                <div class="meter-bar"></div>
+                <div class="meter-bar"></div>
+            </div>
+
+            <div class="danger-alert" id="danger-alert">KOMANDAN PATROLI MENDEKAT! JANGAN MENGETIK!</div>
+            
+            <div class="paper">
+                <div class="clara-msg" id="clara-msg"></div>
+                <div class="target-word" id="target-word">MEMUAT...</div>
+            </div>
+
+            <div class="input-display" id="input-display"></div>
+
+            <div class="freeplay-controls" id="freeplay-controls">
+                <button class="freeplay-btn" onclick="commitFreeplayLetter()">Kunci Huruf (Enter)</button>
+                <button class="freeplay-btn" onclick="addFreeplaySpace()">Spasi Kata ( / )</button>
+                <button class="freeplay-btn" id="replay-btn" onclick="replayFreeplayAudio()" style="border-color:#c9b075; color:#ffd983;">▶ Putar Ulang</button>
+                <button class="freeplay-btn" onclick="backspaceFreeplay()">Hapus</button>
+                <button class="freeplay-btn" onclick="resetFreeplay()">Reset</button>
+            </div>
+
+            <button class="telegraph-btn" id="telegraph-btn">TEKAN (SPASI / KLIK)</button>
+            
+            <p style="color:#aaa; margin-top:15px; font-size:0.8em; margin-bottom:0;" id="instruction-text">
+                Ketuk cepat = Titik (.) | Tahan lama = Garis (-)
+            </p>
+        </div>
+    </div>
+
+    <!-- Panel Panduan Kertas (Samping) -->
+    <div class="cheat-panel" id="cheat-panel">
+        <button class="toggle-btn" id="toggle-btn"><span id="arrow-icon">◀</span></button>
+        <h2>PANDUAN MORSE</h2>
+        <div class="morse-grid-container">
+            <div class="morse-column" id="col-left"></div>
+            <div class="morse-column" id="col-right"></div>
+        </div>
+    </div>
+
+    <script>
+        const morseDict = {
+            'A': '.-',   'B': '-...', 'C': '-.-.', 'D': '-..',  'E': '.',    'F': '..-.',
+            'G': '--.',  'H': '....', 'I': '..',   'J': '.---', 'K': '-.-',  'L': '.-..',
+            'M': '--',   'N': '-.',   'O': '---',  'P': '.--.', 'Q': '--.-', 'R': '.-.',
+            'S': '...',  'T': '-',    'U': '..-',  'V': '...-', 'W': '.--',  'X': '-..-',
+            'Y': '-.--', 'Z': '--..'
+        };
+
+        const reverseMorseDict = {};
+        for (let char in morseDict) {
+            reverseMorseDict[morseDict[char]] = char;
+        }
+
+        const singleWordsList = [
+            "SOS", "BOM", "AWAS", "LARI", "SIAP", "SERANG", "MUNDUR", "BERTAHAN", "KIRI", "KANAN",
+            "RADAR", "SONAR", "TANK", "BUNKER", "PARIT", "SENJATA", "PELURU", "GRANAT", "ARTILERI", "RANJAU",
+            "PASUKAN", "PRAJURIT", "JENDERAL", "KAPTEN", "SERDAN", "INTEL", "MATA", "SADAP", "PATROLI", "PENJAGA",
+            "DARURAT", "BAHAYA", "BANTUAN", "LOGISTIK", "MEDIS", "DOKTER", "KAPAL", "PESAWAT", "UBOAT", "PANZER",
+            "BAZOOKA", "MORTIR", "TORPEDO", "NUKLIR", "KODENAMA", "RAHASIA", "ENIGMA", "ISYARAT", "SINYAL", "TELEGRAF",
+            "BARRACK", "JEMBATAN", "MENARA", "PERBATASAN", "GARIS", "DEPAN", "BELAKANG", "MARKAS", "POS", "BARIKADE",
+            "SEKUTU", "POROS", "MILITER", "TAKTIK", "STRATEGI", "INVASI", "SABOTASE", "EVAKUASI", "PENYERGAPAN", "GURUN",
+            "AMUNISI", "KONVOI", "FLANKING", "SCOUT", "BARISAN", "BENDERA", "TAKTIKAL", "PERINTAH", "LAPORAN", "KORBAN",
+            "SELAMAT", "TAHANAN", "GENCATAN", "TAKLUK", "KEMENANGAN", "BERANI", "SANGKUR", "HELMET", "SHELTER", "FLARE",
+            "KOMUNIKASI", "TEROPONG", "NAVIGASI", "KOMPAS", "LOKASI", "KOORDINAT", "TARGET", "PATROLI", "AMBUSH", "SKUADRON"
+        ];
+
+        const multiWordsList = [
+            "SERANG SEKARANG", "MUNDUR SEGERA", "KAPAL MUSUH", "TANK DEPAN", "SOS DARURAT", "SIAPKAN SENJATA", "JAGA MARKAS",
+            "KIRIM BANTUAN", "PASUKAN MUNDUR", "POS UTAMA", "GENCATAN SENJATA", "BOM ARTILERI", "RANJAU DARAT", "LARI CEPAT",
+            "UBOAT MUSUH", "KAPAL TENGGELAM", "MATA MATA", "INTEL RAHASIA", "AMUNISI HABIS", "AMBIL HELM", "LINTASI PARIT",
+            "RADAR RUSAK", "KODE ENIGMA", "BANTUAN MEDIS", "BAHAYA BESAR", "GARIS DEPAN", "KIRI KANAN", "SIAP AMBUSH",
+            "TEMBAK TARGET", "KAPAL SELAM",
+            "SERANG GARIS DEPAN", "PASUKAN MUNDUR SEGERA", "KIRIM BANTUAN MEDIS", "BOM MARKAS MUSUH", "KAPAL MUSUH DEKAT",
+            "AWAS RANJAU DARAT", "PERIKSA PERBATASAN SEKARANG", "JAGA POS UTAMA", "AMUNISI SUDAH HABIS", "KIRIM SINYAL DARURAT",
+            "MATA MATA TERDENGAR", "BAHAYA ARTILERI MUSUH", "PATROLI MALAM SIAP", "LARI KE BUNKER", "SIAPKAN PERALATAN PERANG",
+            "LINTASI PARIT SEGERA", "KODENAMA RAHASIA NEGARA", "LOKASI TARGET DIKETAHUI", "EVAKUASI KORBAN PERANG", "SERANGAN UDARA MUSUH",
+            "TAKTIK AMBUSH SIAP", "GENCATAN SENJATA BATAL", "TORPEDO SIAP TEMBAK", "TEROPONG JATUH KIRI", "KAPTEN BUTUH LAPORAN",
+            "PASUKAN MUSUH SERANG MARKAS", "KIRIM LOGISTIK KE DEPAN", "EVAKUASI PASUKAN KE BUNKER", "SABOTASE JEMBATAN PERBATASAN MUSUH",
+            "JENDERAL PERINTAH MUNDUR SEGERA", "AMBIL AMUNISI DI BARRACK", "BAHAYA SERANGAN BOM UDARA", "KAPAL SELAM DETEKSI SONAR",
+            "PERSIAPKAN STRATEGI PERANG BERSAMA", "AMBUSH PASUKAN MUSUH KANAN", "INTEL LAPORAN KODE RAHASIA", "MORTIR MELEDAK DI PARIT",
+            "SIAPKAN SANGKUR DAN HELMET", "KORBAN SELAMAT BUTUH DOKTER", "BANTUAN MEDIS TIBA SEGERA", "KOMPAS DAN NAVIGASI RUSAK",
+            "POS PERBATASAN DALAM BAHAYA", "TOLONG KAMI DI GURUN", "PENJAGA MENARA TEREMBAT MUSUH", "SIAPKAN BAZOOKA DAN GRANAT",
+            "KONVOI TANK MUSUH DEKAT", "GENCATAN SENJATA SUDAH BERAKHIR", "SADAP TELEGRAF MARKAS POROS", "PASUKAN SEKUTU SEGERA TIBA",
+            "FLARE MERAH TANDA BAHAYA",
+            "SERANG MARKAS UTAMA MUSUH SEKARANG", "PASUKAN MUNDUR KE BUNKER SEGERA", "KIRIM BANTUAN LOGISTIK DAN MEDIS",
+            "KAPAL SELAM MUSUH TERDETEKSI SONAR", "SABOTASE JEMBATAN UTAMA PERBATASAN MUSUH", "SIAPKAN STRATEGI SERANGAN GARIS DEPAN",
+            "LOKASI KOORDINAT TARGET SUDAH DIKETAHUI", "PERINTAH DARURAT DARI JENDERAL UTAMA", "EVAKUASI SELURUH KORBAN PERANG SEGERA",
+            "LARI DAN BERTAHAN DI BUNKER", "AWAS SERANGAN ARTILERI JATUH KANAN", "AMBIL AMUNISI DAN SENJATA SEGERA",
+            "INTEL SADAP SINYAL TELEGRAF RAHASIA", "BAHAYA BESAR SERANGAN BOM UDARA", "KODENAMA ENIGMA SUDAH BERHASIL DIBUKA",
+            "PATROLI MALAM SIAPKAN SANGKUR HELMET", "PASUKAN SEKUTU TIBA DI PERBATASAN", "RANJAU DARAT TERSEBAR DI GURUN",
+            "GENCATAN SENJATA BATAL SERANG SEKARANG", "KOMUNIKASI TELEGRAF MARKAS BESAR PUTUS"
+        ];
+
+        // 6 Bab Cerita[cite: 1]
+        const storyChapters = [
+            {
+                title: "PROLOG & BAB 1: AWAL MULA",
+                intro: "Tahun 1914, Perang Dunia I meletus. Di sebuah pos logistik zona merah, Clara seorang perawat muda, menemukan alat telegraf tua.Ia mencoba memutar knop frekuensi tanpa sengaja, Sinyalnya terhubung ke Thomas, seorang operator militer di markas utama.",
+                sceneType: "trench",
+                dialogs: [
+                    { clara: "TES TES APAKAH ADA ORANG", thomas: "SIAPA INI INI SALURAN TENTARA" },
+                    { clara: "MAAF AKU CLARA PERAWAT GARIS DEPAN", thomas: "AKU THOMAS JANGAN PAKAI SALURAN INI" }
+                ],
+                hazard: "none"
+            },
+            {
+                title: "BAB 2: MULAI BERBINCANG",
+                intro: "Malam demi malam berlalu di tengah dinginnya parit pertahanan. Merasa takut dan kesepian di garis depan, Clara kembali mengetuk telegrafnya secara sembunyi-sembunyi. Sikap kaku Thomas pun perlahan melunak.",
+                sceneType: "nightCamp",
+                dialogs: [
+                    { clara: "DI SINI DINGIN DAN GELAP", thomas: "DI MARKAS JUGA HUJAN" },
+                    { clara: "SENANG KAMU MEMBALAS PESAN INI", thomas: "AKU BIARKAN SALURAN INI TERBUKA" }
+                ],
+                hazard: "none"
+            },
+            {
+                title: "BAB 3: MULAI SALING MENGENAL",
+                intro: "Di sela desing peluru yang melintasi medan perang, dua orang asing ini mulai berbagi masa lalu dan impian sederhana mereka sebelum perang merenggut segalanya.",
+                sceneType: "splitWorld",
+                dialogs: [
+                    { clara: "SEBELUM PERANG AKU PERAWAT ORANG TUA", thomas: "AKU HANYA TUKANG KAYU BIASA" },
+                    { clara: "KETUKAN MORSEMU SEPERTI SEBUAH LAGU", thomas: "KAU CAHAYA DI FREKUENSI INI" }
+                ],
+                hazard: "stealth"
+            },
+            {
+                title: "BAB 4: BERJANJI UNTUK BERTEMU",
+                intro: "Sebuah ikatan mendalam tumbuh di antara mereka tanpa pernah bertatap muka. Mereka mengikat sebuah janji untuk saling mencari dan bertemu begitu perang ini berakhir.",
+                sceneType: "clockPromise",
+                dialogs: [
+                    { clara: "KITA HARUS BERTEMU SAAT PERANG USAI", thomas: "MARI BERTEMU DI STASIUN UTARA" },
+                    { clara: "AKU AKAN MEMBAWAKANMU SEBUAH KUE MANIS", thomas: "AKU AKAN MENANTIKANNYA" }
+                ],
+                hazard: "flare"
+            },
+            {
+                title: "BAB 5: KEADAAN MENJADI GAWAT",
+                intro: "Sektor utara diserang secara mendadak oleh rentetan artileri berat. Rumah sakit lapangan dihantam mortir. Terjebak di suatu ruangan, Clara menggunakan telegraf sebagai satu-satunya suar darurat.",
+                sceneType: "ruinedCamp",
+                dialogs: [
+                    { clara: "MORTIR MENGHANTAM RUMAH SAKIT PINTU TERTUTUP", thomas: "CARI JALAN KELUAR LAIN SEGERA" },
+                    { clara: "LORONG LAIN RUBUH ADA ASAP PEKAT", thomas: "TUTUP HIDUNG KAMI KIRIM PENYELAMAT" }
+                ],
+                hazard: "artillery"
+            },
+            {
+                title: "BAB 6: PESAN TERAKHIR",
+                intro: "Lantai di atas runtuh total. Clara terperangkap di bawah balok semen sempit bersama pemancar yang baterainya mulai bocor dan melemah. Menyadari waktu yang tak banyak, ia mengirimkan transmisi terakhirnya.",
+                sceneType: "bunkerCollapse",
+                dialogs: [
+                    { clara: "AKU TERTINDIH DI BAWAH RERUNTUHAN", thomas: "HEMAT TENAGAMU BERTAHAN SEBENTAR LAGI" },
+                    { clara: "UDARA MENIPIS BATERAI HAMPIR HABIS", thomas: "TETAP TENANG AKU AKAN KE SANA" },
+                    { clara: "AKU MENCINTAIMU", thomas: "TUNGGU" }
+                ],
+                hazard: "damaged"
+            }
+        ];
+
+        const epilogueStory = {
+            title: "EPILOG: DERAU FREKUENSI KOSONG",
+            sceneType: "epilogueBroken",
+            text: "Setelah Thomas mengirimkan ketukan terakhirnya, saluran transmiter dari zona merah seketika hening...\n\nSinyal radio itu mati total.\n\nBantuan militer yang tiba keesokan paginya hanya menemukan puing-puing rumah sakit lapangan yang telah hancur rata dengan tanah. Clara tergeletak tak bernyawa di antara reruntuhan bunker.\n\nPerang akhirnya usai beberapa tahun kemudian. Prajurit lain merayakan kepulangan mereka, namun Thomas tidak pernah benar-benar kembali dari perang itu.\n\nHingga rambutnya memutih dan masa tuanya tiba, Thomas tetap duduk sendirian di depan meja telegraf tua miliknya, menyetel frekuensi terlarang yang kini hanya menyisakan desis derau radio kosong.\n\nIa tidak menikah dengan siapapun hingga akhir hayatnya, menjaga kesetiaan dan janji cintanya pada gadis telegraf di seberang frekuensi."
+        };
+
+        let gameMode = 'single';
+        let currentScore = 0;
+        let currentChallengeScore = 100;
+        let shuffledList = [];
+        let listIndex = 0;
+
+        let currentChapterIdx = 0;
+        let currentDialogIdx = 0;
+        let isStealthDanger = false;
+        let hazardInterval = null;
+        let artilleryInterval = null;
+        let isStoryReceiving = false;
+        let isStoryTypingIntro = false;
+        let isShowingEpilogue = false;
+
+        let targetWordsArray = [];
+        let currentWordIndex = 0;
+        let currentWordTarget = "";
+        let currentCharIndex = 0;
+        let currentLetterInput = "";
+        let completedDisplay = "";
+        let waitingForSlash = false;
+
+        let freeplayTranslatedText = "";
+        let isReplaying = false;
+
+        let isPressing = false;
+        let pressStartTime = 0;
+        let audioCtx, oscillator, gainNode;
+
+        let isBgmPlaying = false;
+        let bgmVolume = 0.9;
+        let bgmTimeout = null;
+        let masterBgmGain = null;
+
+        const screens = {
+            mainMenu: document.getElementById('main-menu-screen'),
+            playModes: document.getElementById('play-modes-screen'),
+            settings: document.getElementById('settings-screen'),
+            exit: document.getElementById('exit-screen'),
+            story: document.getElementById('story-screen'),
+            game: document.getElementById('game-screen')
+        };
+
+        const mainGameBox = document.getElementById('main-game-box');
+        const bunkerLamp = document.getElementById('bunker-lamp');
+        const radioMeter = document.getElementById('radio-meter');
+        const dustCanvas = document.getElementById('dust-canvas');
+        const flareOverlay = document.getElementById('flare-overlay');
+        const patrolShadow = document.getElementById('patrol-shadow');
+
+        const storyCanvas = document.getElementById('story-illustration-canvas');
+        const uiStoryTitle = document.getElementById('story-title');
+        const uiStoryText = document.getElementById('story-text');
+        const uiStartChapterBtn = document.getElementById('start-chapter-btn');
+        const uiInfo = document.getElementById('info-val');
+        const uiDanger = document.getElementById('danger-alert');
+        const uiClara = document.getElementById('clara-msg');
+        const uiTargetWord = document.getElementById('target-word');
+        const uiInputDisplay = document.getElementById('input-display');
+        const uiInstruction = document.getElementById('instruction-text');
+        const uiFreeplayControls = document.getElementById('freeplay-controls');
+        const telegraphBtn = document.getElementById('telegraph-btn');
+        const cheatPanel = document.getElementById('cheat-panel');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const replayBtn = document.getElementById('replay-btn');
+
+        /* --- NAVIGASI LAYAR --- */
+        function showScreen(screenId) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showMenu() {
+            clearHazards();
+            stopIllustrationScene();
+            stopBGM();
+            isStoryReceiving = false;
+            isStoryTypingIntro = false;
+            isShowingEpilogue = false;
+            isReplaying = false;
+            uiFreeplayControls.style.display = "none";
+            showScreen('main-menu-screen');
+        }
+
+        function exitGame() {
+            stopBGM();
+            try {
+                window.close();
+            } catch (e) {}
+            showScreen('exit-screen');
+        }
+
+        function changeBgmVolume(val) {
+            bgmVolume = val / 100;
+            document.getElementById('volume-val-text').innerText = val + "%";
+            if (masterBgmGain && audioCtx) {
+                masterBgmGain.gain.setValueAtTime(bgmVolume, audioCtx.currentTime);
+            }
+        }
+
+        function updateScoreDisplay() {
+            if (gameMode === 'single' || gameMode === 'multi') {
+                uiInfo.innerText = `SKOR: ${currentScore} (Sisa Poin: ${currentChallengeScore})`;
+            } else if (gameMode === 'story') {
+                uiInfo.innerText = `BAB ${currentChapterIdx + 1} / ${storyChapters.length}`;
+            } else {
+                uiInfo.innerText = "MODE BEBAS";
+            }
+        }
+
+        /* --- SISTEM RENDER CANVAS TIAP BAB --- */
+        let sceneAnimId = null;
+        let smokeParticles = [];
+        let sceneTime = 0;
+        let currentSceneType = "none";
+
+        const campStars = [
+            {x: 30, y: 55, baseAlpha: 0.9},
+            {x: 90, y: 95, baseAlpha: 0.8},
+            {x: 65, y: 140, baseAlpha: 1.0},
+            {x: 165, y: 50, baseAlpha: 0.85},
+            {x: 175, y: 120, baseAlpha: 0.75},
+            {x: 255, y: 100, baseAlpha: 0.95},
+            {x: 280, y: 35, baseAlpha: 0.8},
+            {x: 325, y: 55, baseAlpha: 1.0},
+            {x: 335, y: 140, baseAlpha: 0.9},
+            {x: 395, y: 75, baseAlpha: 0.85}
+        ];
+
+        function initSmokeParticles(origins, count = 90) {
+            smokeParticles = [];
+            for (let i = 0; i < count; i++) {
+                const originX = origins[Math.floor(Math.random() * origins.length)];
+                smokeParticles.push({
+                    originX: originX,
+                    x: originX + (Math.random() - 0.5) * 18,
+                    y: Math.random() * (275 * 0.5),
+                    speedY: Math.random() * 0.65 + 0.4,
+                    drift: (Math.random() - 0.5) * 0.35,
+                    size: Math.random() * 4 + 3,
+                    opacity: Math.random() * 0.55 + 0.3
+                });
+            }
+        }
+
+        function drawTrenchFrame(c, w, h) {
+            const flash = Math.sin(sceneTime * 0.5) > 0.96 ? 0.15 : 0;
+            c.fillStyle = flash > 0 ? "#256c80" : "#1b5a6c";
+            c.fillRect(0, 0, w, h * 0.45);
+
+            c.fillStyle = "#9a939e";
+            smokeParticles.forEach(p => {
+                c.globalAlpha = p.opacity;
+                const waveOffset = Math.sin(sceneTime * 1.5 + p.y * 0.05) * 6;
+                c.fillRect(p.x + waveOffset, p.y, p.size, p.size);
+                p.y -= p.speedY; p.x += p.drift; p.opacity -= 0.0018;
+                if (p.y <= -5 || p.opacity <= 0) {
+                    p.y = h * 0.45; p.x = p.originX + (Math.random() - 0.5) * 16; p.opacity = Math.random() * 0.55 + 0.35;
+                }
+            });
+            c.globalAlpha = 1.0;
+
+            c.fillStyle = "#542c22";
+            c.fillRect(0, h * 0.45, w, h * 0.55);
+
+            function drawCross(x, y, sz = 8) {
+                c.strokeStyle = "#1a100d"; c.lineWidth = 3; c.beginPath();
+                c.moveTo(x - sz, y - sz); c.lineTo(x + sz, y + sz);
+                c.moveTo(x + sz, y - sz); c.lineTo(x - sz, y + sz);
+                c.moveTo(x, y); c.lineTo(x, y + sz + 3); c.stroke();
+            }
+            const crosses = [[20, 125], [45, 130], [80, 125], [130, 128], [150, 130], [195, 128], [230, 127], [290, 133], [325, 135], [375, 132], [435, 135], [490, 135], [30, 160], [85, 155], [190, 150], [260, 195], [310, 160], [370, 170], [460, 175], [70, 230], [375, 230]];
+            crosses.forEach(pos => drawCross(pos[0], pos[1], 8));
+
+            function drawCrater(cx, cy, rx, ry) {
+                c.fillStyle = "#1e0c08";
+                for (let px = cx - rx; px <= cx + rx; px += 4) {
+                    for (let py = cy - ry; py <= cy + ry; py += 4) {
+                        if (Math.pow((px - cx) / rx, 2) + Math.pow((py - cy) / ry, 2) <= 1) c.fillRect(px, py, 3.5, 3.5);
+                    }
+                }
+            }
+            drawCrater(85, 160, 16, 14); drawCrater(175, 230, 35, 28); drawCrater(315, 215, 26, 22); drawCrater(345, 150, 18, 14); drawCrater(425, 160, 22, 18); drawCrater(485, 215, 18, 14);
+
+            c.fillStyle = "#c5bcc7"; c.globalAlpha = 0.12 + Math.sin(sceneTime) * 0.04;
+            c.fillRect(0, h * 0.42, w, 18); c.globalAlpha = 1.0;
+        }
+
+        function drawNightCampFrame(c, w, h) {
+            c.fillStyle = "#0b2161"; c.fillRect(0, 0, w, h * 0.73);
+            c.fillStyle = "#7b838f"; c.beginPath(); c.arc(w - 20, 10, 50, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#4a4f59"; c.beginPath(); c.arc(w - 38, 25, 4, 0, Math.PI * 2); c.arc(w - 55, 12, 3, 0, Math.PI * 2); c.arc(w - 18, 48, 3.5, 0, Math.PI * 2); c.fill();
+
+            function drawPillCloud(x, y, cw, ch) {
+                c.fillStyle = "rgba(105, 114, 140, 0.45)"; c.beginPath(); c.roundRect(x, y, cw, ch, ch / 2); c.fill();
+            }
+            const cloudShift = (sceneTime * 6) % (w + 200) - 100;
+            drawPillCloud(20 + cloudShift * 0.5, 25, 140, 30); drawPillCloud(260 + cloudShift * 0.7, 22, 130, 28); drawPillCloud(180 + cloudShift * 0.4, 62, 185, 30);
+
+            campStars.forEach((st, idx) => {
+                const twinkle = Math.sin(sceneTime * 2 + idx * 1.5) * 0.35 + 0.65;
+                c.fillStyle = "#ffff55"; c.globalAlpha = st.baseAlpha * twinkle; c.fillRect(st.x, st.y, 4.5, 4.5);
+            });
+            c.globalAlpha = 1.0;
+
+            c.fillStyle = "#632717"; c.fillRect(0, h * 0.73, w, h * 0.08);
+            c.fillStyle = "#45160c"; c.fillRect(0, h * 0.81, w, h * 0.19);
+
+            c.save(); c.translate(w * 0.64, h * 0.65); c.rotate(-0.06);
+            c.fillStyle = "#2d120a"; c.fillRect(0, 0, 16, 120);
+            c.fillStyle = "#124e36"; c.fillRect(16, 2, 200, 115);
+            c.fillStyle = "#ffffff"; c.beginPath(); c.arc(100, 52, 26, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#8a2424"; c.fillRect(92, 34, 16, 36); c.fillRect(82, 44, 36, 16);
+            c.restore();
+
+            const fireX = w * 0.465, fireY = h * 0.81;
+            c.strokeStyle = "#7e7882"; c.lineWidth = 3.5; c.beginPath();
+            c.moveTo(fireX - 16, fireY + 12); c.lineTo(fireX + 16, fireY + 4);
+            c.moveTo(fireX + 14, fireY + 12); c.lineTo(fireX - 14, fireY + 4); c.stroke();
+
+            const flameWiggle = Math.sin(sceneTime * 12) * 2;
+            const flameHeight = Math.cos(sceneTime * 14) * 3 + 24;
+            c.fillStyle = "#e6601a"; c.beginPath(); c.moveTo(fireX - 10, fireY + 8); c.lineTo(fireX + flameWiggle, fireY - flameHeight); c.lineTo(fireX + 10, fireY + 8); c.closePath(); c.fill();
+            c.fillStyle = "#ffb020"; c.beginPath(); c.moveTo(fireX - 6, fireY + 8); c.lineTo(fireX - flameWiggle * 0.5, fireY - flameHeight * 0.75); c.lineTo(fireX + 6, fireY + 8); c.closePath(); c.fill();
+
+            c.strokeStyle = "rgba(120, 135, 175, 0.45)"; c.lineWidth = 3.5; c.beginPath(); c.moveTo(fireX, fireY - flameHeight);
+            for (let sy = fireY - flameHeight; sy >= 80; sy -= 15) {
+                c.lineTo(fireX + Math.sin(sceneTime * 3 + sy * 0.04) * 8, sy);
+            }
+            c.stroke();
+        }
+
+        function drawSplitWorldFrame(c, w, h) {
+            c.fillStyle = "#0a132c"; c.fillRect(0, 0, w, h * 0.6);
+            c.fillStyle = "#4a241b"; c.fillRect(0, h * 0.6, w, h * 0.4);
+
+            function drawPillCloud(x, y, cw, ch) {
+                c.fillStyle = "rgba(105, 114, 140, 0.45)"; c.beginPath(); c.roundRect(x, y, cw, ch, ch / 2); c.fill();
+            }
+            drawPillCloud(20, 20, 170, 32);
+            drawPillCloud(100, 60, 150, 30);
+
+            c.fillStyle = "#706878";
+            smokeParticles.forEach(p => {
+                if (p.originX < w * 0.35) {
+                    c.globalAlpha = p.opacity;
+                    c.fillRect(p.x + Math.sin(sceneTime * 1.5 + p.y * 0.05) * 5, p.y, p.size, p.size);
+                    p.y -= p.speedY; p.opacity -= 0.0018;
+                    if (p.y <= -5 || p.opacity <= 0) { p.y = h * 0.6; p.opacity = 0.5; p.x = p.originX + (Math.random() - 0.5) * 15; }
+                }
+            });
+            c.globalAlpha = 1.0;
+
+            c.save(); 
+            c.beginPath();
+            c.moveTo(0, h); 
+            c.lineTo(w, 0); 
+            c.lineTo(w, h); 
+            c.closePath();
+            c.clip();
+
+            c.fillStyle = "#63c7eb"; c.fillRect(0, 0, w, h * 0.58);
+            c.fillStyle = "#63b827"; c.fillRect(0, h * 0.58, w, h * 0.42);
+
+            c.fillStyle = "#c05517";
+            c.fillRect(0, h * 0.52, w, 7);
+            c.fillRect(0, h * 0.56, w, 7);
+            for (let px = 80; px < w; px += 55) c.fillRect(px, h * 0.49, 9, 28);
+
+            const flowerWiggle = Math.sin(sceneTime * 3) * 2.5;
+            c.fillStyle = "#e072a4";
+            [[w * 0.58, h * 0.68], [w * 0.70, h * 0.79], [w * 0.82, h * 0.72], [w * 0.94, h * 0.70]].forEach(pos => {
+                c.beginPath(); c.arc(pos[0] + flowerWiggle, pos[1], 5, 0, Math.PI * 2); c.fill();
+            });
+            c.restore();
+        }
+
+        function drawClockPromiseFrame(c, w, h) {
+            c.fillStyle = "#1b192e"; 
+            c.fillRect(0, 0, w, h);
+
+            const cx = w * 0.5;
+            const cy = h * 0.52;
+            const outerRadius = 88;
+            const innerRadius = 66;
+
+            c.fillStyle = "#e07828";
+            c.beginPath();
+            c.arc(cx, cy - outerRadius - 2, 22, Math.PI, 0);
+            c.fill();
+
+            c.fillStyle = "#c8621a";
+            c.beginPath();
+            c.arc(cx, cy - outerRadius - 10, 12, Math.PI, 0);
+            c.fill();
+
+            c.fillStyle = "#e07828";
+            c.beginPath();
+            c.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+            c.fill();
+
+            c.fillStyle = "#ffffff";
+            c.beginPath();
+            c.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+            c.fill();
+
+            c.lineCap = "round";
+            c.strokeStyle = "#111111";
+
+            c.lineWidth = 9;
+            c.beginPath();
+            c.moveTo(cx, cy);
+            c.lineTo(cx, cy - 38);
+            c.stroke();
+
+            const minAngle = sceneTime * 1.5;
+            c.lineWidth = 8;
+            c.beginPath();
+            c.moveTo(cx, cy);
+            c.lineTo(cx + Math.cos(minAngle) * 44, cy + Math.sin(minAngle) * 44);
+            c.stroke();
+
+            c.fillStyle = "#111111";
+            c.beginPath();
+            c.arc(cx, cy, 6, 0, Math.PI * 2);
+            c.fill();
+        }
+
+        function drawRuinedCampFrame(c, w, h) {
+            const flash = Math.sin(sceneTime * 2.5) > 0.95 ? 0.35 : 0;
+            c.fillStyle = flash > 0 ? "#1a3280" : "#0b2161";
+            c.fillRect(0, 0, w, h * 0.73);
+            c.fillStyle = "#7b838f"; c.beginPath(); c.arc(w - 20, 10, 50, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#632717"; c.fillRect(0, h * 0.73, w, h * 0.08);
+            c.fillStyle = "#45160c"; c.fillRect(0, h * 0.81, w, h * 0.19);
+
+            c.save(); c.translate(w * 0.72, h * 0.72); c.rotate(0.35);
+            c.fillStyle = "#0c3b28"; c.fillRect(0, 0, 150, 90);
+            c.fillStyle = "#ffffff"; c.beginPath(); c.arc(60, 45, 24, 0, Math.PI * 2); c.fill();
+            c.fillStyle = "#8a2424"; c.fillRect(52, 30, 16, 30); c.fillRect(45, 37, 30, 16);
+            c.restore();
+
+            function drawCrater(cx, cy, rx, ry) {
+                c.fillStyle = "#160603";
+                for (let px = cx - rx; px <= cx + rx; px += 4) {
+                    for (let py = cy - ry; py <= cy + ry; py += 4) {
+                        if (Math.pow((px - cx) / rx, 2) + Math.pow((py - cy) / ry, 2) <= 1) c.fillRect(px, py, 4, 4);
+                    }
+                }
+            }
+            drawCrater(55, 225, 25, 20); drawCrater(145, 235, 28, 22); drawCrater(235, 220, 32, 24); drawCrater(340, 240, 24, 18);
+
+            c.fillStyle = "#433842";
+            smokeParticles.forEach(p => {
+                c.globalAlpha = p.opacity;
+                c.fillRect(p.x + Math.sin(sceneTime * 2 + p.y * 0.06) * 8, p.y, p.size * 1.5, p.size * 1.5);
+                p.y -= p.speedY * 1.2; p.opacity -= 0.0016;
+                if (p.y <= -10 || p.opacity <= 0) { p.y = h * 0.75; p.opacity = 0.65; p.x = p.originX + (Math.random() - 0.5) * 20; }
+            });
+            c.globalAlpha = 1.0;
+        }
+
+        function drawBunkerCollapseFrame(c, w, h) {
+            c.fillStyle = "#26222b"; c.fillRect(0, 0, w, h);
+
+            const shakeX = Math.sin(sceneTime * 25) * 2.5;
+            const shakeY = Math.cos(sceneTime * 20) * 1.8;
+
+            c.save();
+            c.translate(shakeX, shakeY);
+
+            c.fillStyle = "#3d3645";
+            c.beginPath();
+            c.moveTo(0, 0); c.lineTo(w * 0.45, 0); c.lineTo(w * 0.25, h * 0.65); c.lineTo(0, h * 0.5);
+            c.fill();
+
+            c.fillStyle = "#484052";
+            c.beginPath();
+            c.moveTo(w * 0.55, 0); c.lineTo(w, 0); c.lineTo(w, h * 0.75); c.lineTo(w * 0.7, h * 0.5);
+            c.fill();
+
+            c.strokeStyle = "#120e17"; c.lineWidth = 3.5;
+            c.beginPath();
+            c.moveTo(w * 0.5, 0); c.lineTo(w * 0.45, h * 0.35);
+            c.lineTo(w * 0.52, h * 0.65); c.lineTo(w * 0.48, h);
+            c.stroke();
+            c.restore();
+
+            c.fillStyle = "#968b9c";
+            smokeParticles.forEach(p => {
+                c.globalAlpha = p.opacity;
+                c.fillRect(p.x, p.y, p.size, p.size);
+                p.y += p.speedY * 2.5;
+                if (p.y > h) { p.y = -5; p.x = Math.random() * w; }
+            });
+            c.globalAlpha = 1.0;
+        }
+
+        function drawEpilogueBrokenFrame(c, w, h) {
+            c.fillStyle = "#3e3842"; c.fillRect(0, 0, w, h);
+
+            c.strokeStyle = "#1a161c"; c.lineWidth = 3.5;
+            function drawRuinBranch(x, y) {
+                c.beginPath(); c.moveTo(x, y); c.lineTo(x + 12, y + 25); c.moveTo(x + 12, y + 25); c.lineTo(x + 22, y + 38); c.stroke();
+            }
+            drawRuinBranch(55, 10); drawRuinBranch(380, 25); drawRuinBranch(260, 200); drawRuinBranch(10, 220);
+
+            c.strokeStyle = "#a80b0b"; c.lineWidth = 4.5; c.beginPath();
+            for (let x = 0; x <= w * 0.6; x += 4) {
+                const y = h * 0.4 + Math.sin(x * 0.015) * 45;
+                if (x === 0) c.moveTo(x, y); else c.lineTo(x, y);
+            }
+            c.stroke();
+
+            c.fillStyle = "#a80b0b";
+            for (let x = w * 0.63; x <= w; x += 18) {
+                const y = h * 0.4 + Math.sin(x * 0.015) * 45;
+                c.beginPath(); c.arc(x, y, 2.5, 0, Math.PI * 2); c.fill();
+            }
+        }
+
+        function renderSceneLoop() {
+            const cvs = storyCanvas;
+            const c = cvs.getContext('2d');
+            const w = cvs.width;
+            const h = cvs.height;
+            sceneTime += 0.035;
+
+            if (currentSceneType === "trench") {
+                drawTrenchFrame(c, w, h);
+            } else if (currentSceneType === "nightCamp") {
+                drawNightCampFrame(c, w, h);
+            } else if (currentSceneType === "splitWorld") {
+                drawSplitWorldFrame(c, w, h);
+            } else if (currentSceneType === "clockPromise") {
+                drawClockPromiseFrame(c, w, h);
+            } else if (currentSceneType === "ruinedCamp") {
+                drawRuinedCampFrame(c, w, h);
+            } else if (currentSceneType === "bunkerCollapse") {
+                drawBunkerCollapseFrame(c, w, h);
+            } else if (currentSceneType === "epilogueBroken") {
+                drawEpilogueBrokenFrame(c, w, h);
+            }
+
+            sceneAnimId = requestAnimationFrame(renderSceneLoop);
+        }
+
+        function startIllustrationScene(type) {
+            cancelAnimationFrame(sceneAnimId);
+            currentSceneType = type;
+            if (type === "trench") {
+                initSmokeParticles([509 * 0.2, 509 * 0.45, 509 * 0.8]);
+            } else if (type === "splitWorld") {
+                initSmokeParticles([509 * 0.12, 509 * 0.24], 40);
+            } else if (type === "ruinedCamp") {
+                initSmokeParticles([55, 145, 235, 340, 420], 85);
+            } else if (type === "bunkerCollapse") {
+                initSmokeParticles([509 * 0.2, 509 * 0.5, 509 * 0.8], 60);
+            }
+            renderSceneLoop();
+        }
+
+        function stopIllustrationScene() {
+            cancelAnimationFrame(sceneAnimId);
+            currentSceneType = "none";
+        }
+
+        /* --- SISTEM PARTIKEL DEBU JATUH --- */
+        const ctx = dustCanvas.getContext('2d');
+        let dustParticles = [];
+        let dustAnimId = null;
+
+        function resizeDustCanvas() {
+            dustCanvas.width = window.innerWidth;
+            dustCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeDustCanvas);
+        resizeDustCanvas();
+
+        function initDustParticles() {
+            dustParticles = [];
+            for (let i = 0; i < 65; i++) {
+                dustParticles.push({
+                    x: Math.random() * dustCanvas.width,
+                    y: Math.random() * dustCanvas.height,
+                    radius: Math.random() * 2.5 + 1,
+                    speedY: Math.random() * 3.5 + 2,
+                    speedX: (Math.random() - 0.5) * 1.5,
+                    opacity: Math.random() * 0.7 + 0.3
+                });
+            }
+        }
+
+        function renderDust() {
+            ctx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
+            ctx.fillStyle = "#c2b89d";
+            dustParticles.forEach(p => {
+                ctx.beginPath();
+                ctx.globalAlpha = p.opacity;
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                p.y += p.speedY;
+                p.x += p.speedX;
+                if (p.y > dustCanvas.height) {
+                    p.y = -5;
+                    p.x = Math.random() * dustCanvas.width;
+                }
+            });
+            ctx.globalAlpha = 1;
+            dustAnimId = requestAnimationFrame(renderDust);
+        }
+
+        function startDust() {
+            dustCanvas.style.display = "block";
+            initDustParticles();
+            cancelAnimationFrame(dustAnimId);
+            renderDust();
+        }
+
+        function stopDust() {
+            dustCanvas.style.display = "none";
+            cancelAnimationFrame(dustAnimId);
+        }
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startGame(mode) {
+            initAudio();
+            gameMode = mode;
+            currentScore = 0;
+            currentChallengeScore = 100;
+            isStoryReceiving = false;
+            isStoryTypingIntro = false;
+            isShowingEpilogue = false;
+            isReplaying = false;
+            clearHazards();
+            stopIllustrationScene();
+            startBGM(1);
+            uiClara.style.display = "none";
+            uiFreeplayControls.style.display = "none";
+            uiTargetWord.classList.remove('damaged');
+            
+            if (mode === 'single') {
+                shuffledList = shuffleArray(singleWordsList);
+                uiInstruction.innerHTML = "Ketuk cepat = Titik (.) | Tahan lama = Garis (-)";
+            } else {
+                shuffledList = shuffleArray(multiWordsList);
+                uiInstruction.innerHTML = "Selesaikan kata lalu tekan <b style='color:#c9b075;'>Garis Miring ( / )</b> untuk kata berikutnya!";
+            }
+            
+            listIndex = 0;
+            showScreen('game-screen');
+            loadNextChallenge();
+        }
+
+        function startStoryMode() {
+            initAudio();
+            gameMode = 'story';
+            currentChapterIdx = 0;
+            isShowingEpilogue = false;
+            isReplaying = false;
+            clearHazards();
+            uiFreeplayControls.style.display = "none";
+            loadStoryChapterIntro();
+        }
+
+        function startFreeplayMode() {
+            initAudio();
+            gameMode = 'freeplay';
+            clearHazards();
+            stopIllustrationScene();
+            startBGM(3);
+            isStoryReceiving = false;
+            isStoryTypingIntro = false;
+            isShowingEpilogue = false;
+            isReplaying = false;
+            uiClara.style.display = "none";
+            uiTargetWord.classList.remove('damaged');
+            uiInfo.innerText = "MODE BEBAS";
+            uiFreeplayControls.style.display = "flex";
+            
+            currentLetterInput = "";
+            completedDisplay = "";
+            freeplayTranslatedText = "";
+
+            uiTargetWord.innerText = "HASIL: [KOSONG]";
+            uiInstruction.innerHTML = "Tekan <b>Enter</b> = Kunci Huruf | Tekan <b>/</b> = Spasi Kata | <b>Backspace</b> = Hapus";
+            
+            showScreen('game-screen');
+            updateFreeplayDisplay();
+        }
+
+        function updateFreeplayDisplay(highlightIndex = -1) {
+            let text = completedDisplay;
+            if (currentLetterInput.length > 0) {
+                if (text.length > 0 && !text.endsWith(" ") && !text.endsWith(" / ")) {
+                    text += "  ";
+                }
+                text += currentLetterInput;
+            }
+            
+            if (highlightIndex >= 0 && highlightIndex < text.length) {
+                let formatted = "";
+                for (let i = 0; i < text.length; i++) {
+                    if (i === highlightIndex) {
+                        formatted += `<span class="replay-active-char">${text[i]}</span>`;
+                    } else {
+                        formatted += text[i];
+                    }
+                }
+                uiInputDisplay.innerHTML = formatted;
+            } else {
+                uiInputDisplay.innerText = text.length > 0 ? text : "[MENUNGGU INPUT MORSE...]";
+            }
+            
+            let previewLetter = "";
+            if (currentLetterInput.length > 0) {
+                previewLetter = reverseMorseDict[currentLetterInput] || "?";
+            }
+            
+            let translated = freeplayTranslatedText;
+            if (previewLetter) {
+                translated += previewLetter;
+            }
+            uiTargetWord.innerText = translated.length > 0 ? "HASIL: " + translated : "HASIL: [KOSONG]";
+        }
+
+        function commitFreeplayLetter() {
+            if (gameMode !== 'freeplay' || currentLetterInput.length === 0 || isReplaying) return;
+            const letter = reverseMorseDict[currentLetterInput] || "?";
+            freeplayTranslatedText += letter;
+            
+            if (completedDisplay.length > 0 && !completedDisplay.endsWith(" / ")) {
+                completedDisplay += "  ";
+            }
+            completedDisplay += currentLetterInput;
+            currentLetterInput = "";
+            updateFreeplayDisplay();
+        }
+
+        function addFreeplaySpace() {
+            if (gameMode !== 'freeplay' || isReplaying) return;
+            if (currentLetterInput.length > 0) {
+                commitFreeplayLetter();
+            }
+            if (freeplayTranslatedText.length > 0 && !freeplayTranslatedText.endsWith(" ")) {
+                freeplayTranslatedText += " ";
+                completedDisplay += " / ";
+            }
+            updateFreeplayDisplay();
+        }
+
+        function backspaceFreeplay() {
+            if (gameMode !== 'freeplay' || isReplaying) return;
+            if (currentLetterInput.length > 0) {
+                currentLetterInput = currentLetterInput.slice(0, -1);
+            } else if (freeplayTranslatedText.length > 0) {
+                if (freeplayTranslatedText.endsWith(" ")) {
+                    freeplayTranslatedText = freeplayTranslatedText.slice(0, -1);
+                    if (completedDisplay.endsWith(" / ")) {
+                        completedDisplay = completedDisplay.slice(0, -3);
+                    }
+                } else {
+                    freeplayTranslatedText = freeplayTranslatedText.slice(0, -1);
+                    let lastSpaceIdx = completedDisplay.lastIndexOf("  ");
+                    let lastSlashIdx = completedDisplay.lastIndexOf(" / ");
+                    let cutIdx = Math.max(lastSpaceIdx !== -1 ? lastSpaceIdx : 0, lastSlashIdx !== -1 ? lastSlashIdx + 3 : 0);
+                    completedDisplay = completedDisplay.slice(0, cutIdx);
+                }
+            }
+            updateFreeplayDisplay();
+        }
+
+        function resetFreeplay() {
+            if (gameMode !== 'freeplay' || isReplaying) return;
+            currentLetterInput = "";
+            completedDisplay = "";
+            freeplayTranslatedText = "";
+            updateFreeplayDisplay();
+        }
+
+        /* --- FITUR REPLAY DENGAN INDIKATOR KARAKTER AKTIF --- */
+        function replayFreeplayAudio() {
+            if (gameMode !== 'freeplay' || isReplaying) return;
+            
+            let fullMorseSequence = completedDisplay;
+            if (currentLetterInput.length > 0) {
+                if (fullMorseSequence.length > 0 && !fullMorseSequence.endsWith(" ") && !fullMorseSequence.endsWith(" / ")) {
+                    fullMorseSequence += "  ";
+                }
+                fullMorseSequence += currentLetterInput;
+            }
+
+            if (!fullMorseSequence || fullMorseSequence.trim() === "") return;
+
+            initAudio();
+            isReplaying = true;
+            replayBtn.innerText = "⏳ Memutar...";
+            telegraphBtn.classList.add('disabled');
+
+            let delay = 0;
+            const unit = 0.1;
+
+            for (let i = 0; i < fullMorseSequence.length; i++) {
+                const char = fullMorseSequence[i];
+                const currentIndex = i;
+
+                if (char === '.') {
+                    setTimeout(() => {
+                        if (isReplaying) updateFreeplayDisplay(currentIndex);
+                    }, delay * 1000);
+                    playReplayTone(delay, unit);
+                    delay += unit;
+
+                    setTimeout(() => {
+                        if (isReplaying) updateFreeplayDisplay(-1);
+                    }, delay * 1000);
+                    delay += unit;
+                } else if (char === '-') {
+                    setTimeout(() => {
+                        if (isReplaying) updateFreeplayDisplay(currentIndex);
+                    }, delay * 1000);
+                    playReplayTone(delay, unit * 3);
+                    delay += unit * 3;
+
+                    setTimeout(() => {
+                        if (isReplaying) updateFreeplayDisplay(-1);
+                    }, delay * 1000);
+                    delay += unit;
+                } else if (char === ' ') {
+                    setTimeout(() => {
+                        if (isReplaying) updateFreeplayDisplay(currentIndex);
+                    }, delay * 1000);
+                    delay += unit * 2;
+                } else if (char === '/') {
+                    setTimeout(() => {
+                        if (isReplaying) updateFreeplayDisplay(currentIndex);
+                    }, delay * 1000);
+                    delay += unit * 4;
+                }
+            }
+
+            setTimeout(() => {
+                isReplaying = false;
+                replayBtn.innerText = "▶ Putar Ulang";
+                telegraphBtn.classList.remove('disabled');
+                updateFreeplayDisplay(-1);
+            }, (delay + 0.2) * 1000);
+        }
+
+        function playReplayTone(startTimeOffset, duration) {
+            const now = audioCtx.currentTime + startTimeOffset;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(750, now);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.linearRampToValueAtTime(0.65, now + 0.01);
+            gain.gain.setValueAtTime(0.65, now + duration - 0.01);
+            gain.gain.linearRampToValueAtTime(0.0001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+        }
+
+        /* --- TYPEWRITER EFEK UNTUK DESKRIPSI INTRO BAB --- */
+        function loadStoryChapterIntro() {
+            if (currentChapterIdx >= storyChapters.length) {
+                showEpilogueScreen();
+                return;
+            }
+            const chap = storyChapters[currentChapterIdx];
+
+            startBGM(currentChapterIdx + 1);
+
+            if (chap.sceneType && chap.sceneType !== "none") {
+                storyCanvas.style.display = "block";
+                startIllustrationScene(chap.sceneType);
+            } else {
+                storyCanvas.style.display = "none";
+                stopIllustrationScene();
+            }
+
+            uiStoryTitle.innerText = chap.title;
+            uiStoryTitle.style.color = "#c9b075";
+            uiStoryText.innerText = "";
+            uiStartChapterBtn.innerText = "MULAI PENGIRIMAN";
+            showScreen('story-screen');
+
+            isStoryTypingIntro = true;
+            let charIndex = 0;
+            const fullText = chap.intro;
+
+            function typeIntro() {
+                if (!isStoryTypingIntro || gameMode !== 'story') return;
+                if (charIndex < fullText.length) {
+                    uiStoryText.innerText += fullText[charIndex];
+                    if (fullText[charIndex] !== ' ' && fullText[charIndex] !== '\n') {
+                        playTone(450, 0.03, 0.25);
+                    }
+                    charIndex++;
+                    setTimeout(typeIntro, 25);
+                } else {
+                    isStoryTypingIntro = false;
+                }
+            }
+            typeIntro();
+        }
+
+        /* --- LAYAR EPILOG SINEMATIK (ENDING TRAGIS) --- */
+        function showEpilogueScreen() {
+            isShowingEpilogue = true;
+            clearHazards();
+            startBGM(6);
+            storyCanvas.style.display = "block";
+            startIllustrationScene("epilogueBroken");
+            
+            uiStoryTitle.innerText = epilogueStory.title;
+            uiStoryTitle.style.color = "#ff4444";
+            uiStoryText.innerText = "";
+            uiStartChapterBtn.innerText = "KEMBALI KE MENU UTAMA";
+            showScreen('story-screen');
+
+            isStoryTypingIntro = true;
+            let charIndex = 0;
+            const fullText = epilogueStory.text;
+
+            function typeEpilogue() {
+                if (!isStoryTypingIntro || gameMode !== 'story') return;
+                if (charIndex < fullText.length) {
+                    uiStoryText.innerText += fullText[charIndex];
+                    if (fullText[charIndex] !== ' ' && fullText[charIndex] !== '\n') {
+                        playTone(320, 0.04, 0.25);
+                    }
+                    charIndex++;
+                    setTimeout(typeEpilogue, 30);
+                } else {
+                    isStoryTypingIntro = false;
+                }
+            }
+            typeEpilogue();
+        }
+
+        function handleStoryAction() {
+            if (isShowingEpilogue) {
+                showMenu();
+            } else {
+                startStoryChapter();
+            }
+        }
+
+        function startStoryChapter() {
+            isStoryTypingIntro = false;
+            stopIllustrationScene();
+            currentDialogIdx = 0;
+            showScreen('game-screen');
+            updateScoreDisplay();
+            loadStoryDialog();
+        }
+
+        /* --- SISTEM AUDIO PROSEDURAL KHUSUS TIAP BAB --- */
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playPianoTone(freq, time, duration, vol = 0.55, waveType = 'triangle') {
+            if (!isBgmPlaying || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = waveType;
+            osc.frequency.setValueAtTime(freq, time);
+
+            gain.gain.setValueAtTime(0.0001, time);
+            gain.gain.linearRampToValueAtTime(vol, time + 0.025);
+            gain.gain.exponentialRampToValueAtTime(0.00001, time + duration);
+
+            osc.connect(gain);
+            gain.connect(masterBgmGain);
+
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        function playChapterBGM(chapNum) {
+            if (!isBgmPlaying || !audioCtx) return;
+            const now = audioCtx.currentTime;
+            let loopDuration = 12000;
+
+            if (chapNum === 1) {
+                const beat = 60 / 60;
+                playPianoTone(55.00, now, beat * 6, 0.35, 'sine');
+                playPianoTone(110.00, now + beat * 0, beat * 3, 0.28, 'triangle');
+                playPianoTone(130.81, now + beat * 2, beat * 2.5, 0.30, 'triangle');
+                playPianoTone(164.81, now + beat * 4, beat * 3, 0.32, 'triangle');
+                playPianoTone(146.83, now + beat * 6, beat * 3, 0.28, 'triangle');
+                loopDuration = beat * 8 * 1000;
+            } 
+            else if (chapNum === 2) {
+                const beat = 60 / 72;
+                playPianoTone(130.81, now, beat * 3, 0.32);
+                playPianoTone(196.00, now + beat * 0.5, beat * 2, 0.28);
+                playPianoTone(329.63, now + beat * 1.5, beat * 2, 0.35);
+                playPianoTone(261.63, now + beat * 2.5, beat * 2, 0.30);
+                
+                playPianoTone(110.00, now + beat * 4, beat * 3, 0.32);
+                playPianoTone(164.81, now + beat * 4.5, beat * 2, 0.28);
+                playPianoTone(261.63, now + beat * 5.5, beat * 2, 0.35);
+                playPianoTone(220.00, now + beat * 6.5, beat * 2, 0.30);
+                loopDuration = beat * 8 * 1000;
+            }
+            else if (chapNum === 3) {
+                const beat = 60 / 96;
+                playPianoTone(174.61, now + beat * 0, beat * 1.2, 0.30);
+                playPianoTone(349.23, now + beat * 1, beat * 0.8, 0.25);
+                playPianoTone(440.00, now + beat * 2, beat * 0.8, 0.25);
+                playPianoTone(523.25, now + beat * 0.5, beat * 2, 0.38);
+                playPianoTone(196.00, now + beat * 3, beat * 1.2, 0.30);
+                playPianoTone(392.00, now + beat * 4, beat * 0.8, 0.25);
+                playPianoTone(493.88, now + beat * 5, beat * 0.8, 0.25);
+                playPianoTone(587.33, now + beat * 3.5, beat * 2, 0.38);
+                playPianoTone(164.81, now + beat * 6, beat * 1.2, 0.30);
+                playPianoTone(329.63, now + beat * 7, beat * 0.8, 0.25);
+                playPianoTone(392.00, now + beat * 8, beat * 0.8, 0.25);
+                playPianoTone(659.25, now + beat * 6.5, beat * 2, 0.40);
+                playPianoTone(110.00, now + beat * 9, beat * 2, 0.32);
+                playPianoTone(440.00, now + beat * 10, beat * 1.8, 0.35);
+                loopDuration = beat * 12 * 1000;
+            }
+            else if (chapNum === 4) {
+                const beat = 60 / 75;
+                for(let i = 0; i < 8; i++) {
+                    playPianoTone(880.00, now + beat * i, 0.08, 0.08, 'sine');
+                }
+                playPianoTone(220.00, now + beat * 0, beat * 3, 0.32);
+                playPianoTone(440.00, now + beat * 0.5, beat * 1.5, 0.35);
+                playPianoTone(523.25, now + beat * 2.0, beat * 1.5, 0.38);
+                playPianoTone(659.25, now + beat * 3.5, beat * 2.0, 0.40);
+                playPianoTone(174.61, now + beat * 4, beat * 3, 0.32);
+                playPianoTone(587.33, now + beat * 5.5, beat * 2.0, 0.38);
+                loopDuration = beat * 8 * 1000;
+            }
+            else if (chapNum === 5) {
+                const beat = 60 / 115;
+                playPianoTone(73.42, now + beat * 0, beat * 1.5, 0.40, 'sawtooth');
+                playPianoTone(146.83, now + beat * 1, beat * 1.0, 0.30);
+                playPianoTone(155.56, now + beat * 2, beat * 1.0, 0.35);
+                playPianoTone(73.42, now + beat * 3, beat * 1.5, 0.40, 'sawtooth');
+                playPianoTone(293.66, now + beat * 4, beat * 1.2, 0.38);
+                playPianoTone(311.13, now + beat * 5, beat * 1.2, 0.40);
+                playPianoTone(220.00, now + beat * 6, beat * 1.5, 0.35);
+                loopDuration = beat * 8 * 1000;
+            }
+            else {
+                const beat = 60 / 64;
+                playPianoTone(110.00, now + beat * 0, beat * 2.5, 0.38);
+                playPianoTone(164.81, now + beat * 1, beat * 2.0, 0.28);
+                playPianoTone(329.63, now + beat * 0.5, beat * 1.2, 0.35);
+                playPianoTone(440.00, now + beat * 1.5, beat * 1.2, 0.40);
+                playPianoTone(523.25, now + beat * 2.5, beat * 1.5, 0.45);
+                playPianoTone(493.88, now + beat * 3.5, beat * 1.2, 0.36);
+
+                playPianoTone(87.31, now + beat * 4, beat * 2.5, 0.38);
+                playPianoTone(130.81, now + beat * 5, beat * 2.0, 0.28);
+                playPianoTone(440.00, now + beat * 4.5, beat * 1.2, 0.36);
+                playPianoTone(523.25, now + beat * 5.5, beat * 1.2, 0.40);
+                playPianoTone(659.25, now + beat * 6.5, beat * 1.5, 0.45);
+                playPianoTone(587.33, now + beat * 7.5, beat * 1.2, 0.36);
+
+                playPianoTone(130.81, now + beat * 8, beat * 2.5, 0.38);
+                playPianoTone(196.00, now + beat * 9, beat * 2.0, 0.28);
+                playPianoTone(392.00, now + beat * 8.5, beat * 1.2, 0.36);
+                playPianoTone(493.88, now + beat * 9.5, beat * 1.2, 0.40);
+                playPianoTone(587.33, now + beat * 10.5, beat * 1.5, 0.45);
+                playPianoTone(523.25, now + beat * 11.5, beat * 1.2, 0.36);
+
+                playPianoTone(82.41, now + beat * 12, beat * 2.5, 0.38);
+                playPianoTone(123.47, now + beat * 13, beat * 2.0, 0.28);
+                playPianoTone(493.88, now + beat * 12.5, beat * 1.2, 0.40);
+                playPianoTone(392.00, now + beat * 13.5, beat * 1.2, 0.36);
+                playPianoTone(369.99, now + beat * 14.5, beat * 1.2, 0.32);
+                playPianoTone(329.63, now + beat * 15.0, beat * 2.0, 0.36);
+                loopDuration = beat * 16 * 1000;
+            }
+
+            clearTimeout(bgmTimeout);
+            bgmTimeout = setTimeout(() => {
+                if (isBgmPlaying) playChapterBGM(chapNum);
+            }, loopDuration);
+        }
+
+        function startBGM(chapNum = 1) {
+            initAudio();
+            isBgmPlaying = true;
+            document.getElementById('music-status-text').innerText = "ON";
+            document.getElementById('setting-music-btn').innerText = "🔊 MUSIK: ON";
+
+            if (!masterBgmGain) {
+                masterBgmGain = audioCtx.createGain();
+                masterBgmGain.gain.setValueAtTime(bgmVolume, audioCtx.currentTime);
+                masterBgmGain.connect(audioCtx.destination);
+            }
+
+            playChapterBGM(chapNum);
+        }
+
+        function stopBGM() {
+            isBgmPlaying = false;
+            document.getElementById('music-status-text').innerText = "OFF";
+            document.getElementById('setting-music-btn').innerText = "🔇 MUSIK: OFF";
+            clearTimeout(bgmTimeout);
+            if (masterBgmGain && audioCtx) {
+                masterBgmGain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+                setTimeout(() => { masterBgmGain = null; }, 500);
+            }
+        }
+
+        function toggleBGM() {
+            initAudio();
+            if (isBgmPlaying) {
+                stopBGM();
+            } else {
+                startBGM(currentChapterIdx + 1);
+            }
+        }
+
+        function playTone(freq, duration, volume = 0.35) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function startBeep() {
+            initAudio();
+            oscillator = audioCtx.createOscillator();
+            gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(750, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.65, audioCtx.currentTime);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+        }
+
+        function stopBeep() {
+            if (oscillator && gainNode) {
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.05);
+                oscillator.stop(audioCtx.currentTime + 0.05);
+            }
+        }
+
+        function playIncomingSignal(callback) {
+            playTone(850, 0.4, 0.60);
+            setTimeout(() => {
+                if (gameMode !== 'story' || !isStoryReceiving) return;
+                playTone(850, 0.4, 0.60);
+                setTimeout(() => {
+                    if (gameMode !== 'story' || !isStoryReceiving) return;
+                    callback();
+                }, 600);
+            }, 600);
+        }
+
+        function typeClaraMessage(fullText, onComplete) {
+            let typedText = "";
+            let charIndex = 0;
+
+            function nextChar() {
+                if (gameMode !== 'story' || !isStoryReceiving) return;
+                if (charIndex < fullText.length) {
+                    const char = fullText[charIndex];
+                    typedText += char;
+                    uiClara.innerText = 'Clara: "' + typedText + '"';
+                    if (char !== ' ') {
+                        playTone(600, 0.06, 0.60);
+                    }
+                    charIndex++;
+                    setTimeout(nextChar, char === ' ' ? 140 : 80);
+                } else {
+                    isStoryReceiving = false;
+                    onComplete();
+                }
+            }
+            nextChar();
+        }
+
+        /* --- SISTEM PENERAPAN ANIMASI ATMOSFERIK BAB CERITA --- */
+        function applyChapterAtmosphere(hazardType) {
+            bunkerLamp.className = "bunker-lamp";
+            radioMeter.style.display = "none";
+            flareOverlay.style.display = "none";
+            mainGameBox.classList.remove('bunker-earthquake', 'bunker-red-alert');
+            stopDust();
+
+            if (hazardType === 'none') {
+                bunkerLamp.classList.add('swing');
+                radioMeter.style.display = "flex";
+            } else if (hazardType === 'artillery') {
+                startArtilleryFlashes();
+            } else if (hazardType === 'damaged') {
+                mainGameBox.classList.add('bunker-earthquake');
+                uiTargetWord.classList.add('damaged');
+                startDust();
+            } else if (hazardType === 'flare') {
+                flareOverlay.style.display = "block";
+            }
+        }
+
+        function startArtilleryFlashes() {
+            clearInterval(artilleryInterval);
+            artilleryInterval = setInterval(() => {
+                if (gameMode !== 'story' || currentChapterIdx !== 4) return;
+                document.body.classList.add('artillery-flash');
+                playTone(110, 0.3, 0.45);
+                setTimeout(() => {
+                    document.body.classList.remove('artillery-flash');
+                }, 120);
+            }, Math.random() * 4000 + 3500);
+        }
+
+        function startStealthHazard() {
+            hazardInterval = setInterval(() => {
+                isStealthDanger = true;
+                uiDanger.style.display = "block";
+                mainGameBox.classList.add('bunker-red-alert');
+                telegraphBtn.classList.add('disabled');
+
+                patrolShadow.style.display = "block";
+                patrolShadow.style.animation = "patrolWalk 3.2s linear forwards";
+
+                if (isPressing) {
+                    isPressing = false;
+                    stopBeep();
+                    telegraphBtn.classList.remove('active');
+                    currentLetterInput = "";
+                    updateDisplay();
+                }
+
+                setTimeout(() => {
+                    isStealthDanger = false;
+                    uiDanger.style.display = "none";
+                    mainGameBox.classList.remove('bunker-red-alert');
+                    patrolShadow.style.display = "none";
+                    patrolShadow.style.animation = "none";
+                    telegraphBtn.classList.remove('disabled');
+                }, 3200);
+            }, Math.random() * 5000 + 4500);
+        }
+
+        function clearHazards() {
+            clearInterval(hazardInterval);
+            clearInterval(artilleryInterval);
+            isStealthDanger = false;
+            uiDanger.style.display = "none";
+            telegraphBtn.classList.remove('disabled');
+            uiTargetWord.classList.remove('damaged');
+            mainGameBox.classList.remove('bunker-earthquake', 'bunker-red-alert');
+            bunkerLamp.className = "bunker-lamp";
+            radioMeter.style.display = "none";
+            flareOverlay.style.display = "none";
+            patrolShadow.style.display = "none";
+            document.body.classList.remove('artillery-flash');
+            stopDust();
+        }
+
+        function loadStoryDialog() {
+            clearHazards();
+            const chap = storyChapters[currentChapterIdx];
+
+            if (currentDialogIdx >= chap.dialogs.length) {
+                currentChapterIdx++;
+                loadStoryChapterIntro();
+                return;
+            }
+
+            const dialog = chap.dialogs[currentDialogIdx];
+            isStoryReceiving = true;
+            uiClara.style.display = "block";
+            uiClara.innerText = "Clara: [Menghubungkan sinyal...]";
+            uiTargetWord.innerText = "";
+            uiTargetWord.className = "target-word";
+            uiInputDisplay.innerText = "";
+            telegraphBtn.classList.add('disabled');
+
+            applyChapterAtmosphere(chap.hazard);
+
+            playIncomingSignal(() => {
+                typeClaraMessage(dialog.clara, () => {
+                    targetWordsArray = dialog.thomas.split(' ');
+                    currentWordIndex = 0;
+                    completedDisplay = "";
+                    setupWord();
+
+                    telegraphBtn.classList.remove('disabled');
+
+                    if (chap.hazard === 'stealth') {
+                        startStealthHazard();
+                    }
+                });
+            });
+        }
+
+        function loadNextChallenge() {
+            if (listIndex >= shuffledList.length) {
+                shuffledList = shuffleArray(gameMode === 'single' ? singleWordsList : multiWordsList);
+                listIndex = 0;
+            }
+
+            currentChallengeScore = 100;
+
+            if (gameMode === 'single') {
+                targetWordsArray = [shuffledList[listIndex]];
+            } else {
+                let availablePhrases = [];
+                if (currentScore <= 200) {
+                    availablePhrases = shuffledList.filter(p => p.split(' ').length === 2);
+                } else if (currentScore <= 500) {
+                    availablePhrases = shuffledList.filter(p => p.split(' ').length === 3);
+                } else if (currentScore <= 800) {
+                    availablePhrases = shuffledList.filter(p => p.split(' ').length === 4);
+                } else {
+                    availablePhrases = shuffledList.filter(p => p.split(' ').length >= 5);
+                }
+
+                if (availablePhrases.length === 0) availablePhrases = shuffledList;
+                let chosenPhrase = availablePhrases[Math.floor(Math.random() * availablePhrases.length)];
+                targetWordsArray = chosenPhrase.split(' ');
+            }
+
+            listIndex++;
+            currentWordIndex = 0;
+            completedDisplay = "";
+            setupWord();
+        }
+
+        function setupWord() {
+            currentWordTarget = targetWordsArray[currentWordIndex];
+            currentCharIndex = 0;
+            currentLetterInput = "";
+            waitingForSlash = false;
+
+            if (gameMode === 'story') {
+                uiTargetWord.innerText = "> BALAS: " + targetWordsArray.join(' ');
+                uiInstruction.innerHTML = "Selesaikan kata lalu tekan <b style='color:#c9b075;'>Garis Miring ( / )</b> jika terdapat lebih dari satu kata.";
+            } else {
+                uiTargetWord.innerText = targetWordsArray.join(' ');
+            }
+            updateScoreDisplay();
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            let text = completedDisplay;
+            if (currentLetterInput.length > 0) {
+                if (text.length > 0 && !text.endsWith(" ") && !text.endsWith(" / ")) {
+                    text += "  ";
+                }
+                text += currentLetterInput;
+            }
+            if (waitingForSlash) {
+                text += " [ TEKAN TOMBOL ' / ' ]";
+            }
+            uiInputDisplay.innerText = text;
+        }
+
+        function triggerFlash(type) {
+            document.body.classList.add(type);
+            setTimeout(() => document.body.classList.remove(type), 150);
+        }
+
+        function processInput(duration) {
+            if (gameMode === 'freeplay') {
+                if (isReplaying) return;
+                const symbol = duration < 200 ? '.' : '-';
+                currentLetterInput += symbol;
+                updateFreeplayDisplay();
+                return;
+            }
+
+            if (waitingForSlash || isStealthDanger || isStoryReceiving) return;
+
+            const symbol = duration < 200 ? '.' : '-';
+            currentLetterInput += symbol;
+
+            const targetChar = currentWordTarget[currentCharIndex];
+            const targetMorseForChar = morseDict[targetChar];
+
+            if (!targetMorseForChar.startsWith(currentLetterInput)) {
+                triggerFlash('error-flash');
+                currentLetterInput = "";
+                
+                if (gameMode === 'single' || gameMode === 'multi') {
+                    currentChallengeScore = Math.max(0, currentChallengeScore - 10);
+                    updateScoreDisplay();
+                }
+
+                updateDisplay();
+            } else if (currentLetterInput === targetMorseForChar) {
+                if (completedDisplay.length > 0 && !completedDisplay.endsWith(" / ")) {
+                    completedDisplay += "  ";
+                }
+                completedDisplay += currentLetterInput;
+                currentLetterInput = "";
+                currentCharIndex++;
+
+                if (currentCharIndex >= currentWordTarget.length) {
+                    if (currentWordIndex < targetWordsArray.length - 1) {
+                        waitingForSlash = true;
+                        updateDisplay();
+                    } else {
+                        triggerFlash('success-flash');
+                        if (gameMode === 'story') {
+                            currentDialogIdx++;
+                            setTimeout(loadStoryDialog, 800);
+                        } else {
+                            currentScore += currentChallengeScore;
+                            updateScoreDisplay();
+                            setTimeout(loadNextChallenge, 400);
+                        }
+                    }
+                } else {
+                    updateDisplay();
+                }
+            } else {
+                updateDisplay();
+            }
+        }
+
+        function handlePressStart(e) {
+            initAudio();
+            if (!isBgmPlaying) startBGM(gameMode === 'story' ? currentChapterIdx + 1 : 1);
+            if (isStealthDanger || isStoryReceiving || isReplaying || telegraphBtn.classList.contains('disabled')) return;
+            if (e.type === 'keydown' && e.key !== ' ' && e.key !== 'Spacebar') return;
+            if (e.type === 'keydown' && e.repeat) return;
+            if (e.type === 'keydown') e.preventDefault();
+
+            isPressing = true;
+            pressStartTime = Date.now();
+            telegraphBtn.classList.add('active');
+            startBeep();
+        }
+
+        function handlePressEnd(e) {
+            if (e.type === 'keyup' && e.key !== ' ' && e.key !== 'Spacebar') return;
+            if (!isPressing || isReplaying) return;
+
+            isPressing = false;
+            let duration = Date.now() - pressStartTime;
+            telegraphBtn.classList.remove('active');
+            stopBeep();
+            
+            processInput(duration);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (gameMode === 'freeplay') {
+                if (isReplaying) return;
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitFreeplayLetter();
+                } else if (e.key === '/') {
+                    e.preventDefault();
+                    addFreeplaySpace();
+                } else if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    backspaceFreeplay();
+                }
+                return;
+            }
+
+            if (e.key === '/' && waitingForSlash && !isStealthDanger && !isStoryReceiving) {
+                e.preventDefault();
+                waitingForSlash = false;
+                completedDisplay += " / ";
+                currentWordIndex++;
+                setupWord();
+            }
+        });
+
+        telegraphBtn.addEventListener('mousedown', handlePressStart);
+        document.addEventListener('mouseup', handlePressEnd);
+        document.addEventListener('keydown', handlePressStart);
+        document.addEventListener('keyup', handlePressEnd);
+
+        telegraphBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handlePressStart(e); }, {passive: false});
+        telegraphBtn.addEventListener('touchend', (e) => { e.preventDefault(); handlePressEnd(e); }, {passive: false});
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cheatPanel.classList.toggle('open');
+            document.getElementById('arrow-icon').innerText = cheatPanel.classList.contains('open') ? '▶' : '◀';
+        });
+
+        function renderCheatSheet() {
+            const colLeft = document.getElementById('col-left');
+            const colRight = document.getElementById('col-right');
+            colLeft.innerHTML = ""; colRight.innerHTML = "";
+            const keys = Object.keys(morseDict);
+            const halfIndex = Math.ceil(keys.length / 2);
+
+            keys.forEach((char, index) => {
+                const item = document.createElement('div');
+                item.className = 'morse-item';
+                item.innerHTML = `<span>${char}</span><span class="morse-code">${morseDict[char]}</span>`;
+                if (index < halfIndex) colLeft.appendChild(item);
+                else colRight.appendChild(item);
+            });
+        }
+
+        renderCheatSheet();
+    </script>
+</body>
+</html>
